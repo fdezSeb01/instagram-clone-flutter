@@ -4,6 +4,7 @@ import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 import "package:instagram_clone/resources/storage_methods.dart";
+import "package:instagram_clone/models/user.dart" as model;
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -33,17 +34,21 @@ class AuthMethods {
       String photo_url = await StorageMethods()
           .uploadImage2Storage('profilePics', file, false);
 
+      model.User user = model.User(
+          email: email,
+          uid: cred.user!.uid,
+          photoUrl: photo_url,
+          username: username,
+          bio: bio,
+          followers: [],
+          following: []);
+
       //se usa doc.set para que firebas no cree un otro id y no coincidan
-      await _firestore.collection('users').doc(cred.user!.uid).set({
-        'username': username,
-        'bio': bio,
-        'email': email,
-        'uid': cred.user!.uid,
-        'followers': [],
-        'following': [],
-        'photoUrl': photo_url,
-      });
-      res = "Sucess";
+      await _firestore
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set(user.toJson());
+      res = "Success";
     } on FirebaseAuthException catch (err) {
       if (err.code == 'invalid-email') {
         res = 'the email is badly formatted';
