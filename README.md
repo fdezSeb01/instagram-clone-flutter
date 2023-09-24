@@ -1,17 +1,13 @@
 # instagram_clone
 
-A new Flutter project.
+An instagram clone made with flutter and firebase for android, ios and web.
 
-## Getting Started
+## Screenshots
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+https://github.com/fdezSeb01/instagram-clone-flutter/assets/110956552/fd4891c3-3ee4-4c93-8174-c0355ad91f2a
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# instagram-clone-flutter
+![Screenshot from 2023-09-23 23-26-16](https://github.com/fdezSeb01/instagram-clone-flutter/assets/110956552/146b957a-0b4f-4a34-8c01-36fdfef35329)
+![Screenshot from 2023-09-23 23-26-08](https://github.com/fdezSeb01/instagram-clone-flutter/assets/110956552/ace0654d-bd41-4681-a582-ac9605952421)
+![Screenshot from 2023-09-23 23-25-58](https://github.com/fdezSeb01/instagram-clone-flutter/assets/110956552/b21300ac-95e2-4cdc-9cdf-ec934d2161cb)
