@@ -4,7 +4,9 @@ import "package:firebase_core/firebase_core.dart";
 import "package:flutter/material.dart";
 import "package:instagram_clone/models/post.dart";
 import "package:instagram_clone/models/user.dart" as model;
+import "package:instagram_clone/resources/auth_methods.dart";
 import "package:instagram_clone/resources/firestore_methods.dart";
+import "package:instagram_clone/screens/login_screen.dart";
 import "package:instagram_clone/utils/colors.dart";
 import "package:instagram_clone/utils/utils.dart";
 import "package:instagram_clone/widgets/follow_button.dart";
@@ -120,12 +122,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     FirebaseAuth.instance.currentUser!.uid ==
                                             user!.uid
                                         ? FollowButton(
-                                            text: 'Edit Profile',
+                                            text: 'Sign out',
                                             backgroundColor:
                                                 mobileBackgroundColor,
                                             textColor: primaryColor,
                                             borderColor: Colors.grey,
-                                            function: () {},
+                                            function: () async {
+                                              AuthMethods().signOut();
+                                              Navigator.of(context)
+                                                  .pushReplacement(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      LoginScreen(),
+                                                ),
+                                              );
+                                            },
                                           )
                                         : isFollowing
                                             ? FollowButton(
