@@ -1,3 +1,4 @@
+import "package:cloud_firestore/cloud_firestore.dart";
 import "package:flutter/material.dart";
 import "package:instagram_clone/models/post.dart";
 import "package:instagram_clone/models/user.dart";
@@ -5,6 +6,7 @@ import "package:instagram_clone/providers/user_provider.dart";
 import "package:instagram_clone/resources/firestore_methods.dart";
 import "package:instagram_clone/screens/commnet_screen.dart";
 import "package:instagram_clone/utils/colors.dart";
+import "package:instagram_clone/utils/utils.dart";
 import "package:instagram_clone/widgets/like_animation.dart";
 import "package:intl/intl.dart";
 import "package:provider/provider.dart";
@@ -23,6 +25,38 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
+  int n_comments = -2;
+
+  fetchCommentLen() async {
+    try {
+      QuerySnapshot snap = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.postId)
+          .collection('comments')
+          .get();
+      n_comments = snap.docs.length;
+    } catch (err) {
+      showSnackBar(err.toString(), context);
+    }
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchCommentLen();
+  }
+
+  void dialogAction(String action, String postId) async {
+    switch (action) {
+      case 'Delete':
+        await FirestoreMethods().deletePost(postId);
+        break;
+      default:
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +112,10 @@ class _PostCardState extends State<PostCard> {
                               'Stop Following',
                             ]
                                 .map((e) => InkWell(
-                                      onTap: () {},
+                                      onTap: () {
+                                        dialogAction(e, widget.post.postId);
+                                        Navigator.of(context).pop();
+                                      },
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 12,
@@ -248,7 +285,7 @@ class _PostCardState extends State<PostCard> {
                       );
                     },
                     child: Text(
-                      'View all 15 comments',
+                      'View all $n_comments comments',
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium!
