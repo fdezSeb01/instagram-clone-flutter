@@ -83,7 +83,7 @@ class _CommentScreenState extends State<CommentScreen> {
               CircleAvatar(
                 backgroundImage: NetworkImage(
                     //our pp
-                    user.photoUrl),
+                    user!.photoUrl),
                 radius: 18,
               ),
               Expanded(

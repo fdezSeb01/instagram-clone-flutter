@@ -25,7 +25,7 @@ class User {
         "username": username,
         'uid': uid,
         'email': email,
-        'photUrl': photoUrl,
+        'photoUrl': photoUrl,
         'bio': bio,
         'followers': followers,
         'following': following,
