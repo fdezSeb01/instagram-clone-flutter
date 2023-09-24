@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/models/comment.dart';
 import 'package:instagram_clone/models/post.dart';
+import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/resources/storage_methods.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class FirestoreMethods {
@@ -84,6 +86,32 @@ class FirestoreMethods {
   Future<void> deletePost(String postId) async {
     try {
       await _firestore.collection('posts').doc(postId).delete();
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future<void> FollowUser(String uid, String followId) async {
+    try {
+      User user =
+          User.fromSnap(await _firestore.collection('users').doc(uid).get());
+      User followuser = User.fromSnap(
+          await _firestore.collection('users').doc(followId).get());
+
+      if (user.following.contains(followId)) {
+        user.following.remove(followId);
+        followuser.followers.remove(uid);
+      } else {
+        user.following.add(followId);
+        followuser.followers.add(uid);
+      }
+
+      await _firestore.collection('users').doc(uid).update(
+        {'following': user.following},
+      );
+      await _firestore.collection('users').doc(followId).update(
+        {'followers': followuser.followers},
+      );
     } catch (e) {
       print(e.toString());
     }

@@ -1,7 +1,10 @@
 import "package:cloud_firestore/cloud_firestore.dart";
+import "package:firebase_auth/firebase_auth.dart";
 import "package:firebase_core/firebase_core.dart";
 import "package:flutter/material.dart";
-import "package:instagram_clone/models/user.dart";
+import "package:instagram_clone/models/post.dart";
+import "package:instagram_clone/models/user.dart" as model;
+import "package:instagram_clone/resources/firestore_methods.dart";
 import "package:instagram_clone/utils/colors.dart";
 import "package:instagram_clone/utils/utils.dart";
 import "package:instagram_clone/widgets/follow_button.dart";
@@ -18,8 +21,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  User? user;
+  model.User? user;
   int n_posts = 0;
+  bool isFollowing = false;
 
   fetchPostsNum() async {
     try {
@@ -31,7 +35,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (err) {
       showSnackBar(err.toString(), context);
     }
-    setState(() {});
+  }
+
+  void followUser(String uid, String followId) async {
+    await FirestoreMethods().FollowUser(uid, followId);
+    setState(() {
+      isFollowing = !isFollowing;
+      if (isFollowing) {
+        user!.followers.add(followId);
+      } else {
+        user!.followers.remove(followId);
+      }
+    });
   }
 
   @override
@@ -46,10 +61,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .collection('users')
           .doc(widget.uid)
           .get();
-      setState(() {
-        user = User.fromSnap(snap);
-      });
+      user = model.User.fromSnap(snap);
+
       await fetchPostsNum();
+      isFollowing =
+          user!.followers.contains(FirebaseAuth.instance.currentUser!.uid);
+      setState(() {});
     } catch (e) {
       showSnackBar(e.toString(), context);
     }
@@ -100,13 +117,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    FollowButton(
-                                      text: 'Edit Profile',
-                                      backgroundColor: mobileBackgroundColor,
-                                      textColor: primaryColor,
-                                      borderColor: Colors.grey,
-                                      function: () {},
-                                    )
+                                    FirebaseAuth.instance.currentUser!.uid ==
+                                            user!.uid
+                                        ? FollowButton(
+                                            text: 'Edit Profile',
+                                            backgroundColor:
+                                                mobileBackgroundColor,
+                                            textColor: primaryColor,
+                                            borderColor: Colors.grey,
+                                            function: () {},
+                                          )
+                                        : isFollowing
+                                            ? FollowButton(
+                                                text: 'Unfollow',
+                                                backgroundColor: Colors.white,
+                                                textColor: Colors.black,
+                                                borderColor: Colors.grey,
+                                                function: () => followUser(
+                                                    FirebaseAuth.instance
+                                                        .currentUser!.uid,
+                                                    user!.uid),
+                                              )
+                                            : FollowButton(
+                                                text: 'Follow',
+                                                backgroundColor: blueColor,
+                                                textColor: primaryColor,
+                                                borderColor: Colors.grey,
+                                                function: () => followUser(
+                                                    FirebaseAuth.instance
+                                                        .currentUser!.uid,
+                                                    user!.uid),
+                                              ),
                                   ],
                                 ),
                               ],
@@ -133,6 +174,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const Divider(),
+                FutureBuilder(
+                  future: FirebaseFirestore.instance
+                      .collection('posts')
+                      .where('uid', isEqualTo: user!.uid)
+                      .get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      itemCount: (snapshot.data! as dynamic).docs.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 3,
+                        mainAxisSpacing: 3,
+                        childAspectRatio: 1,
+                      ),
+                      itemBuilder: (context, index) {
+                        Post post = Post.fromSnap(
+                            (snapshot.data! as dynamic).docs[index]);
+                        return Container(
+                          child: Image(
+                            image: NetworkImage(post.postUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
               ],
             ),
           );
