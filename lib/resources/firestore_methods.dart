@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:instagram_clone/models/comment.dart';
 import 'package:instagram_clone/models/post.dart';
 import 'package:instagram_clone/resources/storage_methods.dart';
 import 'package:uuid/uuid.dart';
@@ -33,5 +34,49 @@ class FirestoreMethods {
       res = e.toString();
     }
     return res;
+  }
+
+  Future<void> likePost(
+      String postId, String uid, List likes, bool isSmallLike) async {
+    try {
+      if (likes.contains(uid)) {
+        if (!isSmallLike) return;
+        likes.remove(uid);
+      } else {
+        likes.add(uid);
+      }
+      await _firestore.collection('posts').doc(postId).update({
+        'likes': likes,
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future<void> commentPost(
+    String uid,
+    String profImage,
+    String username,
+    String comment,
+    String postId,
+  ) async {
+    try {
+      String id = const Uuid().v1();
+      Comment com = Comment(
+        comment: comment,
+        uid: uid,
+        username: username,
+        commentId: id,
+        profImage: profImage,
+      );
+      await _firestore
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .doc(id)
+          .set(com.toJson());
+    } catch (e) {
+      print(e.toString());
+    }
   }
 }

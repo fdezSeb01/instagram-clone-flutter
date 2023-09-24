@@ -2,6 +2,8 @@ import "package:flutter/material.dart";
 import "package:instagram_clone/models/post.dart";
 import "package:instagram_clone/models/user.dart";
 import "package:instagram_clone/providers/user_provider.dart";
+import "package:instagram_clone/resources/firestore_methods.dart";
+import "package:instagram_clone/screens/commnet_screen.dart";
 import "package:instagram_clone/utils/colors.dart";
 import "package:instagram_clone/widgets/like_animation.dart";
 import "package:intl/intl.dart";
@@ -99,6 +101,7 @@ class _PostCardState extends State<PostCard> {
           //image section
           GestureDetector(
             child: Stack(
+              alignment: Alignment.center,
               children: [
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.35,
@@ -108,23 +111,29 @@ class _PostCardState extends State<PostCard> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                LikeAnimation(
-                  isAnimating: isLikeAnimating,
-                  duration: const Duration(milliseconds: 400),
-                  onEnd: () {
-                    setState(() {
-                      isLikeAnimating = false;
-                    });
-                  },
-                  child: const Icon(
-                    Icons.favorite,
-                    color: primaryColor,
-                    size: 100,
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: isLikeAnimating ? 1 : 0,
+                  child: LikeAnimation(
+                    isAnimating: isLikeAnimating,
+                    duration: const Duration(milliseconds: 400),
+                    onEnd: () {
+                      setState(() {
+                        isLikeAnimating = false;
+                      });
+                    },
+                    child: const Icon(
+                      Icons.favorite,
+                      color: primaryColor,
+                      size: 100,
+                    ),
                   ),
                 )
               ],
             ),
-            onDoubleTap: () {
+            onDoubleTap: () async {
+              await FirestoreMethods().likePost(widget.post.postId,
+                  widget.post.uid, widget.post.likes, false);
               setState(() {
                 isLikeAnimating = true;
               });
@@ -137,15 +146,28 @@ class _PostCardState extends State<PostCard> {
                 isAnimating: widget.post.likes.contains(user.uid),
                 smallLike: true,
                 child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
+                  onPressed: () async {
+                    await FirestoreMethods().likePost(widget.post.postId,
+                        widget.post.uid, widget.post.likes, true);
+                  },
+                  icon: Icon(
                     Icons.favorite,
-                    color: Colors.red,
+                    color: widget.post.likes.contains(user.uid)
+                        ? Colors.red
+                        : Colors.white,
                   ),
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => CommentScreen(
+                        postId: widget.post.postId,
+                      ),
+                    ),
+                  );
+                },
                 icon: const Icon(
                   Icons.comment_outlined,
                 ),
@@ -216,7 +238,15 @@ class _PostCardState extends State<PostCard> {
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.only(top: 5),
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => CommentScreen(
+                            postId: widget.post.postId,
+                          ),
+                        ),
+                      );
+                    },
                     child: Text(
                       'View all 15 comments',
                       style: Theme.of(context)
